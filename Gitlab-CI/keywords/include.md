@@ -14,12 +14,13 @@
 Подразделы:
 - [include:component](include.md#includecomponent)
 - [include:local](include.md#includelocal)
-- include:project
-- include:remote
-- include:template
+- [include:project](include.md#includeproject)
+- [include:remote](include.md#includeremote)
+- [include:template](include.md#includetemplate)
+
 Опционально:
-- include:inputs
-- include:rules
+- [include:inputs](include.md#includeinputs)
+- [include:rules](include.md#includerules)
 
 **Дополнительные сведения:**
 - С ключевыми словами include можно использовать только определенные переменные CI/CD.
@@ -51,3 +52,46 @@ include:
 ## include:local
 Используйте include:local, чтобы включить файл, который находится в том же репозитории и в той же ветви, что и файл конфигурации, содержащий ключевое слово include. Используйте include:local вместо символических ссылок.
 
+**Тип слова:** Глобальное
+
+**Возможные значения:** 
+Полный путь к корневому каталогу (/):
+- Файл YAML должен иметь расширение .yml или .yaml.
+- Вы можете использовать подстановочные знаки * и ** в пути к файлу.
+- Вы можете использовать определенные переменные CI/CD.
+
+**Пример:**
+```YAML
+include:
+  - local: '/templates/.gitlab-ci-template.yml'
+```
+
+Вы также можете использовать более короткий синтаксис для определения пути:
+
+```YAML
+include: '.gitlab-ci-production.yml'
+```
+
+**Дополнительные сведения:**
+- Файл .gitlab-ci.yml и локальный файл должны находиться в одной ветке.
+- Вы не можете включать локальные файлы через пути к подмодулям Git.
+- Конфигурация include всегда оценивается на основе местоположения файла, содержащего ключевое слово include, а не проекта, в котором выполняется конвейер. Если вложенный include находится в файле конфигурации другого проекта, include: local проверяет наличие файла в другом проекте.
+
+## include:project
+Чтобы включить файлы из другого частного проекта в тот же экземпляр GitLab, используйте include:project и include:file.
+
+**Тип слова:** Глобальное
+
+**Возможные значения:** 
+- include:project: Полный путь к проекту GitLab.
+- include:file: указать полный путь к файлу или массив путей к файлам относительно корневого каталога (/). Файлы YAML должны иметь расширение .yml или .yaml.
+- include:ref: Необязательно. Ссылка для получения файла. По умолчанию используется заголовок проекта, если он не указан.
+- Вы можете использовать [определенные переменные CI/CD](https://docs.gitlab.com/ee/ci/yaml/includes.html#use-variables-with-include).
+
+## include:remote
+
+## include:template
+
+## include:inputs
+
+## include:rules
