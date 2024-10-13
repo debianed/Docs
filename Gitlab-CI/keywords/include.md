@@ -13,7 +13,7 @@
 **Возможные значения:**
 Подразделы:
 - [include:component](include.md#includecomponent)
-- include:local
+- [include:local](include.md#includelocal)
 - include:project
 - include:remote
 - include:template
@@ -34,3 +34,20 @@
     - С GitLab 14.9 по GitLab 15.9 у вас может быть до 100 включений. Один и тот же файл может быть включен во вложенные файлы несколько раз, но дубликаты игнорируются.
 
 ## include:component
+Используйте include:component для добавления компонента CI/CD в конфигурацию конвейера.
+
+**Тип слова:** Глобальное
+
+**Возможные значения:** Полный адрес компонента CI/CD, отформатированный как <полное доменное имя>/<путь к проекту>/<имя компонента>@<конкретная версия> (<fully-qualified-domain-name>/<project-path>/<component-name>@<specific-version>).
+
+**Пример:**
+```YAML
+include:
+  - component: $CI_SERVER_FQDN/my-org/security-components/secret-detection@1.0
+```
+**Связанные темы:**
+- [Использование компонентов CI/CD](https://docs.gitlab.com/ee/ci/components/index.html#use-a-component)
+
+## include:local
+Используйте include:local, чтобы включить файл, который находится в том же репозитории и в той же ветви, что и файл конфигурации, содержащий ключевое слово include. Используйте include:local вместо символических ссылок.
+
