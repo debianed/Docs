@@ -203,4 +203,34 @@ job2:
     - используйте inherit:переменные в задании запуска и укажите точные переменные, которые вы хотите передать в нисходящий конвейер.
 
 ## workflow:rules:auto_cancel
+Используйте workflow:rules:auto_cancel для настройки поведения workflow:auto_cancel:on_new_commit или функций workflow:auto_cancel:on_job_failure.
 
+**Возможные значения:**
+- on_new_commit: workflow:auto_cancel:on_new_commit
+- on_job_failure: workflow:auto_cancel:on_job_failure
+
+**Пример:**
+```YAML
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+    on_job_failure: all
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED == 'true'
+      auto_cancel:
+        on_new_commit: none
+        on_job_failure: none
+    - when: always                  # Run the pipeline in other cases
+
+test-job1:
+  script: sleep 10
+  interruptible: false
+
+test-job2:
+  script: sleep 10
+  interruptible: true
+```
+
+В этом примере для параметра workflow:auto_cancel:on_new_commit установлено значение "прерываемый", а для параметра workflow:auto_cancel:on_job_failure по умолчанию установлено значение "все" для всех заданий. Но если конвейер выполняется для защищенной ветви, правило переопределяет значение по умолчанию с помощью on_new_commit: none и on_job_failure: none. Например, если конвейер выполняется для:
+- запускается незащищенная ветвь и новая фиксация, test-job1 продолжает выполняться, а test-job2 отменяется.
+- запускается защищенная ветвь и новая фиксация, и test-job1 и test-job2 продолжают выполняться.
