@@ -142,6 +142,65 @@ workflow:
 - [Использование rules для запуска конвейеров запросов на слияние](https://docs.gitlab.com/ee/ci/pipelines/merge_request_pipelines.html#add-jobs-to-merge-request-pipelines).
 
 ## workflow:rules:variables
+Вы можете использовать переменные в разделе рабочий workflow:rules для определения переменных для конкретных условий конвейера.
+Если условие соответствует, создается переменная, которая может использоваться во всех заданиях конвейера. Если переменная уже определена на глобальном уровне, переменная рабочего процесса имеет приоритет и переопределяет глобальную переменную.
+
+**Тип слова:** Глобальное
+
+**Возможные значения:**
+Пары "Имя переменной" и "значение":
+- В имени могут использоваться только цифры, буквы и символы подчеркивания (_).
+- Значение должно быть строковым.
+
+**Пример:**
+```YAML
+variables:
+  DEPLOY_VARIABLE: "default-deploy"
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      variables:
+        DEPLOY_VARIABLE: "deploy-production"  # Override globally-defined DEPLOY_VARIABLE
+    - if: $CI_COMMIT_REF_NAME =~ /feature/
+      variables:
+        IS_A_FEATURE: "true"                  # Define a new variable.
+    - when: always                            # Run the pipeline in other cases
+
+job1:
+  variables:
+    DEPLOY_VARIABLE: "job1-default-deploy"
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+      variables:                                   # Override DEPLOY_VARIABLE defined
+        DEPLOY_VARIABLE: "job1-deploy-production"  # at the job level.
+    - when: on_success                             # Run the job in other cases
+  script:
+    - echo "Run script with $DEPLOY_VARIABLE as an argument"
+    - echo "Run another script if $IS_A_FEATURE exists"
+
+job2:
+  script:
+    - echo "Run script with $DEPLOY_VARIABLE as an argument"
+    - echo "Run another script if $IS_A_FEATURE exists"
+```
+
+Когда ветвь является ветвью по умолчанию:
+- переменная DEPLOY_VARIABLE для job1 - это job1-deploy-production.
+- переменная DEPLOY_VARIABLE для job2 - это deploy-production.
+
+Когда ветвь является функциональной:
+- переменная DEPLOY_VARIABLE для job1 имеет значение job1-default-deploy, а значение IS_A_FEATURE равно true.
+- переменная DEPLOY_VARIABLE для job2 имеет значение default-deploy, а значение IS_A_FEATURE равно true.
+
+Когда ветвь представляет собой что-то другое:
+- переменная DEPLOY_VARIABLE для job1 - это job1-default-deploy.
+- переменная DEPLOY_VARIABLE для job2 - это default-deploy.
+
+**Дополнительные сведения:**
+- workflow:rules: переменные становятся глобальными переменными, доступными во всех заданиях, включая задания-триггеры, которые по умолчанию передают переменные в нижестоящие конвейеры. Если в нижестоящем конвейере используется та же переменная, она заменяется значением вышестоящей переменной. Убедитесь, что либо:
+    - используйте уникальные имена переменных в конфигурации конвейера каждого проекта, например, PROJECT1_VARIABLE_NAME.
+    - используйте inherit:переменные в задании запуска и укажите точные переменные, которые вы хотите передать в нисходящий конвейер.
 
 ## workflow:rules:auto_cancel
 
