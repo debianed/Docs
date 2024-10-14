@@ -71,8 +71,75 @@ job3:
 - [Автоматическое отключение родительского конвейера от последующего конвейера](https://docs.gitlab.com/ee/ci/pipelines/downstream_pipelines.html#auto-cancel-the-parent-pipeline-from-a-downstream-pipeline)
 
 ## workflow:name
+Вы можете использовать name в workflow:, чтобы задать имя для конвейеров.
+Всем конвейерам присваивается определенное имя. Все начальные и конечные пробелы в названии удаляются.
+
+**Возможные значения:** 
+- Строка
+- [Переменные CI/CD](https://docs.gitlab.com/ee/ci/variables/where_variables_can_be_used.html#gitlab-ciyml-file)
+- Их комбинация
+
+**Пример:**
+Простое имя конвейера с предопределенной переменной:
+```YAML
+workflow:
+  name: 'Pipeline for branch: $CI_COMMIT_BRANCH'
+```
+Конфигурация с различными названиями конвееров в зависимости от условий эксплуатации:
+```YAML
+variables:
+  PROJECT1_PIPELINE_NAME: 'Default pipeline name'  # A default is not required.
+
+workflow:
+  name: '$PROJECT1_PIPELINE_NAME'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      variables:
+        PROJECT1_PIPELINE_NAME: 'MR pipeline: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME'
+    - if: '$CI_MERGE_REQUEST_LABELS =~ /pipeline:run-in-ruby3/'
+      variables:
+        PROJECT1_PIPELINE_NAME: 'Ruby 3 pipeline'
+    - when: always  # Other pipelines can run, but use the default name
+```
+
+**Дополнительные сведения:**
+- Если имя является пустой строкой, конвейеру не присваивается имя. Имя, состоящее только из переменных CI/CD, может быть преобразовано в пустую строку, если все переменные также пусты.
+- workflow:rules:variables становятся глобальными переменными, доступными во всех заданиях, включая задания-триггеры, которые по умолчанию передают переменные в нижестоящие конвейеры. Если в нижестоящем конвейере используется та же переменная, она заменяется значением вышестоящей переменной. Убедитесь, что либо:
+  - Используйте уникальное имя переменной в конфигурации конвейера каждого проекта, например, PROJECT1_PIPELINE_NAME.
+  - Используйте inherit:variables в задании запуска и укажите переменные, которые вы хотите передать в нисходящий конвейер.
 
 ## workflow:rules
+Ключевое слово rules в workflow аналогично правилам, определенным в jobs, но определяет, будет ли создан весь конвейер.
+Если ни одно из правил не принимает значение true, конвейер не запускается.
+
+**Возможные значения:**
+Вы можете использовать некоторые из тех же ключевых слов, что и в правилах на уровне заданий:
+- rules: if
+- rules: changes
+- rules: exists
+- when (может быть задано только always или never при использовании с workflow)
+- variables
+
+**Пример:**
+```YAML
+workflow:
+  rules:
+    - if: $CI_COMMIT_TITLE =~ /-draft$/
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+```
+
+В этом примере конвейеры запускаются, если заголовок фиксации (первая строка сообщения о фиксации) не заканчивается на -draft и конвейер предназначен либо для:
+- Запрос на слияние
+- Ветвь по умолчанию.
+
+**Дополнительные сведения:**
+- Если ваши правила соответствуют как конвейерам ответвлений (отличным от ветки по умолчанию), так и конвейерам запросов на слияние, могут появляться дублирующиеся конвейеры.
+
+**Связанные темы:**
+- [Общие условия if для рабочего workflow:rules](https://docs.gitlab.com/ee/ci/yaml/workflow.html#common-if-clauses-for-workflowrules).
+- [Использование rules для запуска конвейеров запросов на слияние](https://docs.gitlab.com/ee/ci/pipelines/merge_request_pipelines.html#add-jobs-to-merge-request-pipelines).
 
 ## workflow:rules:variables
 
